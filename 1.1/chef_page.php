@@ -1,6 +1,5 @@
 <?php
 session_start();
-// include 'db_connect.php'; // File koneksi ke database
 
 // Periksa apakah koki sudah login
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'koki') {
@@ -53,6 +52,22 @@ $conn->close();
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Koki</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="chef_page.php">Pesanan</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="manage_menu.php">Kelola Menu</a>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0">
+                <a class="btn btn-outline-danger my-2 my-sm-0" href="logout.php">Logout</a>
+            </form>
+        </div>
+    </nav>
     <div class="container mt-5">
         <h2>Daftar Pesanan</h2>
         <?php if (!empty($orders)): ?>

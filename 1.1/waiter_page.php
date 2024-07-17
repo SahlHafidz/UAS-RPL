@@ -10,14 +10,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'pelayan') {
     exit();
 }
 
-// Query untuk mengambil informasi meja yang tersedia, dll.
-// Misalnya: SELECT * FROM tables WHERE status = 'available';
-
-// Misalkan Anda memiliki fungsi untuk mengambil informasi meja dan menu dari database
-// $tables = getAvailableTables(); // Contoh fungsi untuk mendapatkan meja yang tersedia
-// $menuItems = getMenuItems(); // Contoh fungsi untuk mendapatkan daftar menu
-
-// Sekarang tampilkan HTML dan formulir untuk reservasi, pencatatan nama, dan pesanan
 // Koneksi ke database
 $servername = "localhost";  // Ganti dengan nama server Anda jika berbeda
 $username = "root";         // Ganti dengan username database Anda
@@ -30,6 +22,18 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 // Periksa koneksi
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
+}
+
+// Query untuk mengambil informasi meja yang tersedia
+$sql = "SELECT id, table_number FROM tables WHERE status = 'available'";
+$result = $conn->query($sql);
+
+// Buat array untuk menyimpan hasil query
+$availableTables = array();
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $availableTables[$row['id']] = $row['table_number'];
+    }
 }
 
 // Query untuk mengambil data menu dari tabel menu_items
@@ -46,10 +50,6 @@ if ($result->num_rows > 0) {
 
 // Tutup koneksi
 $conn->close();
-
-
-
-
 
 ?>
 <!DOCTYPE html>
@@ -75,9 +75,12 @@ $conn->close();
             <div class="form-group">
                 <label for="table">Pilih Meja:</label>
                 <select class="form-control" id="table" name="table" required>
-                    <option value="1">Meja 1</option>
-                    <option value="2">Meja 2</option>
-                    <!-- Tambahkan opsi lain sesuai dengan meja yang tersedia -->
+                    <?php
+                    // Loop untuk menampilkan opsi meja dari array $availableTables
+                    foreach ($availableTables as $id => $tableNumber) {
+                        echo "<option value='{$id}'>Meja {$tableNumber}</option>";
+                    }
+                    ?>
                 </select>
             </div>
             <div id="menuItems">

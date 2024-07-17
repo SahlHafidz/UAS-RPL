@@ -27,6 +27,10 @@ if ($stmt->num_rows > 0) {
     } elseif ($role == 'kasir') {
         header("Location: cashier_page.php");
     }
+    elseif ($role == 'owner') {
+        header("Location: owner_page.php");
+    }
+    
     exit();
 } else {
     echo "Username atau password salah";
