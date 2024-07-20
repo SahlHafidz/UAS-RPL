@@ -64,7 +64,7 @@ $conn->close();
                 </li>
             </ul>
             <form class="form-inline my-2 my-lg-0">
-                <a class="btn btn-outline-danger my-2 my-sm-0" href="logout.php">Logout</a>
+                <a class="btn btn-outline-danger my-2 my-sm-0" href="index.html">Logout</a>
             </form>
         </div>
     </nav>

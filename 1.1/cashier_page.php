@@ -21,11 +21,11 @@ if ($conn->connect_error) {
 }
 
 // Query untuk mendapatkan pesanan yang siap dibayar
-$sql = "SELECT orders.id, orders.customer_name, orders.status, GROUP_CONCAT(menu_items.name SEPARATOR ', ') AS items, SUM(order_items.quantity * menu_items.price) AS total
+$sql = "SELECT orders.id, orders.customer_name, GROUP_CONCAT(menu_items.name SEPARATOR ', ') AS items, SUM(order_items.quantity * menu_items.price) AS total
         FROM orders
         JOIN order_items ON orders.id = order_items.order_id
         JOIN menu_items ON order_items.menu_item_id = menu_items.id
-        WHERE orders.status = 'ready'
+        WHERE orders.status = 'ready' AND orders.paid = FALSE
         GROUP BY orders.id";
 $result = $conn->query($sql);
 

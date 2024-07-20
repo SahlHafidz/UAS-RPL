@@ -30,7 +30,7 @@ $conn->begin_transaction();
 
 try {
     // Update status pesanan
-    $sql = "UPDATE orders SET status = 'paid' WHERE id = ?";
+    $sql = "UPDATE orders SET status = 'paid', paid = TRUE WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('i', $order_id);
     $stmt->execute();

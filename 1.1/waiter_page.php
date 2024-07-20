@@ -24,8 +24,14 @@ if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Query untuk mengambil informasi meja yang tersedia
-$sql = "SELECT id, table_number FROM tables WHERE status = 'available'";
+// Query untuk mengambil informasi meja yang tersedia dan tidak sedang dipesan
+$sql = "
+    SELECT t.id, t.table_number 
+    FROM tables t 
+    LEFT JOIN orders o ON t.id = o.table_id AND o.paid = FALSE 
+    WHERE t.status = 'available' AND o.id IS NULL
+    ORDER BY t.table_number ASC
+";
 $result = $conn->query($sql);
 
 // Buat array untuk menyimpan hasil query
@@ -37,14 +43,14 @@ if ($result->num_rows > 0) {
 }
 
 // Query untuk mengambil data menu dari tabel menu_items
-$sql = "SELECT id, name FROM menu_items";
+$sql = "SELECT id, name, category FROM menu_items";
 $result = $conn->query($sql);
 
 // Buat array untuk menyimpan hasil query
 $menuItems = array();
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
-        $menuItems[$row['id']] = $row['name'];
+        $menuItems[$row['id']] = array('name' => $row['name'], 'category' => $row['category']);
     }
 }
 
@@ -60,6 +66,23 @@ $conn->close();
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Restoran</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="waiter_page.php">Pemesanan</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="reservasi.php">Reservasi Meja</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="kelola.php">Kelola Meja</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container mt-5">
     <div class="container mt-5">
         <h2>Pencatatan Pesanan</h2>
         <?php
@@ -88,12 +111,22 @@ $conn->close();
                 <div class="menu-item mb-3">
                     <div class="form-row align-items-center">
                         <div class="col">
+                            <label for="category1">Kategori:</label>
+                            <select class="form-control category-select" id="category1" data-menu-item="1" required>
+                                <option value="all">Semua Menu</option>
+                                <option value="makanan">Makanan</option>
+                                <option value="minuman">Minuman</option>
+                                <option value="camilan">Camilan</option> 
+                            </select>
+                        </div>
+                        <div class="col">
                             <label for="menuItem1">Pilih Menu:</label>
-                            <select class="form-control" id="menuItem1" name="menuItems[1][menuId]" required>
+                            <select class="form-control menu-select" id="menuItem1" name="menuItems[1][menuId]" required>
+                                <option value="">-- Pilih Menu --</option>
                                 <?php
                                 // Loop untuk menampilkan opsi menu dari array $menuItems
-                                foreach ($menuItems as $id => $name) {
-                                    echo "<option value='{$id}'>{$name}</option>";
+                                foreach ($menuItems as $id => $item) {
+                                    echo "<option value='{$id}' data-category='{$item['category']}'>{$item['name']}</option>";
                                 }
                                 ?>
                             </select>
@@ -125,12 +158,21 @@ $conn->close();
                     <div class="menu-item mb-3">
                         <div class="form-row align-items-center">
                             <div class="col">
+                                <label for="category${menuItemCount}">Kategori:</label>
+                                <select class="form-control category-select" id="category${menuItemCount}" data-menu-item="${menuItemCount}" required>
+                                    <option value="all">Semua Menu</option>
+                                    <option value="makanan">Makanan</option>
+                                    <option value="minuman">Minuman</option>
+                                </select>
+                            </div>
+                            <div class="col">
                                 <label for="menuItem${menuItemCount}">Pilih Menu:</label>
-                                <select class="form-control" id="menuItem${menuItemCount}" name="menuItems[${menuItemCount}][menuId]" required>
+                                <select class="form-control menu-select" id="menuItem${menuItemCount}" name="menuItems[${menuItemCount}][menuId]" required>
+                                    <option value="">-- Pilih Menu --</option>
                                     <?php
                                     // Loop untuk menampilkan opsi menu dari array $menuItems
-                                    foreach ($menuItems as $id => $name) {
-                                        echo "<option value='{$id}'>{$name}</option>";
+                                    foreach ($menuItems as $id => $item) {
+                                        echo "<option value='{$id}' data-category='{$item['category']}'>{$item['name']}</option>";
                                     }
                                     ?>
                                 </select>
@@ -147,12 +189,42 @@ $conn->close();
                 `;
                 $('#menuItems').append(newItem);
             });
-        });
 
-        // Fungsi untuk menghapus item menu dari formulir
-        function removeMenuItem(button) {
-            $(button).closest('.menu-item').remove();
-        }
+            // Fungsi untuk menghapus item menu dari formulir
+            window.removeMenuItem = function(button) {
+                $(button).closest('.menu-item').remove();
+            };
+
+            // Fungsi untuk memperbarui opsi menu berdasarkan kategori yang dipilih
+            function updateMenuOptions(menuItem) {
+                var category = $(`#category${menuItem}`).val();
+                var menuSelect = $(`#menuItem${menuItem}`);
+
+                menuSelect.find('option').each(function() {
+                    var option = $(this);
+                    if (category === 'all' || option.data('category') === category) {
+                        option.show();
+                    } else {
+                        option.hide();
+                    }
+                });
+
+                // Pilih ulang opsi kosong
+                menuSelect.val('');
+            }
+
+            // Event listener untuk perubahan kategori
+            $(document).on('change', '.category-select', function() {
+                var menuItem = $(this).data('menu-item');
+                updateMenuOptions(menuItem);
+            });
+
+            // Inisialisasi opsi menu berdasarkan kategori yang dipilih saat pertama kali dimuat
+            $('.category-select').each(function() {
+                var menuItem = $(this).data('menu-item');
+                updateMenuOptions(menuItem);
+            });
+        });
     </script>
 </body>
 </html>

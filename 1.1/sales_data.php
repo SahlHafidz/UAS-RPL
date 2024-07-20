@@ -79,7 +79,7 @@ $conn->close();
                 ?>
             </tbody>
         </table>
-        <a href="owner.php" class="btn btn-primary">Kembali</a>
+        <a href="owner_page.php" class="btn btn-primary">Kembali</a>
     </div>
 </body>
 </html>
