@@ -1,0 +1,15 @@
+role pelayan
+username:username_pelayan
+password:password_pelayan
+
+role chef
+username:chef_username
+password:chef_password
+
+role kasir
+username:kasir1
+password:password_kasir
+
+role owner
+username:hafidz
+password:admin#1234
